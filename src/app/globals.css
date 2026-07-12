@@ -1,26 +1,40 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Paleta Lámu — derivada do logo (dourado sobre creme/champanhe) */
+  --cream: #f7eee2;        /* fundo principal */
+  --cream-dark: #efe1cd;   /* fundos de seção/hover */
+  --gold: #b08d3e;         /* dourado principal (botões, links, acentos) */
+  --gold-dark: #8f7130;    /* hover de botões */
+  --gold-light: #d4bc84;   /* bordas e detalhes */
+  --ink: #3e3428;          /* texto principal (marrom-escuro quente) */
+  --ink-soft: #7a6d5c;     /* texto secundário */
+  --white: #fffdf9;        /* cards */
+  --danger: #a33a3a;       /* erros e esgotado */
+  --success: #4a7c59;      /* confirmações */
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-cream: var(--cream);
+  --color-cream-dark: var(--cream-dark);
+  --color-gold: var(--gold);
+  --color-gold-dark: var(--gold-dark);
+  --color-gold-light: var(--gold-light);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-card: var(--white);
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+  --font-heading: var(--font-cormorant);
+  --font-body: var(--font-montserrat);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-montserrat), sans-serif;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-cormorant), serif;
 }
