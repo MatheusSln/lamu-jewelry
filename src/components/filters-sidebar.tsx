@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
 import type { CatalogParams } from "@/lib/filters";
 import { buildCatalogHref, PRICE_BUCKETS } from "@/lib/filters";
 
@@ -41,8 +44,10 @@ export function FiltersSidebar({
   params: CatalogParams;
   subs: SubItem[];
 }) {
-  return (
-    <aside className="w-full md:w-52 shrink-0">
+  const [open, setOpen] = useState(false);
+
+  const filtersContent = (
+    <>
       {subs.length > 0 && (
         <FilterGroup title="Categoria">
           <FilterLink href={buildCatalogHref(base, params, { sub: undefined })} active={!params.sub}>
@@ -90,6 +95,40 @@ export function FiltersSidebar({
           </FilterLink>
         ))}
       </FilterGroup>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Mobile toggle */}
+      <button 
+        className="md:hidden w-full mb-4 bg-cream-dark py-2 text-sm tracking-widest uppercase border border-gold-light/50"
+        onClick={() => setOpen(true)}
+      >
+        Filtrar Produtos
+      </button>
+
+      {/* Mobile Drawer */}
+      {open && (
+        <div className="fixed inset-0 bg-ink/20 z-50 md:hidden flex justify-end">
+          <div className="w-4/5 max-w-sm bg-cream h-full overflow-y-auto p-6 shadow-xl animate-in slide-in-from-right">
+            <div className="flex justify-between items-center mb-6">
+              <span className="tracking-[0.15em] uppercase text-gold font-medium">Filtros</span>
+              <button onClick={() => setOpen(false)} className="p-2 text-ink">
+                ✕
+              </button>
+            </div>
+            <div onClick={() => setOpen(false)}>
+              {filtersContent}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Desktop Sidebar */}
+      <aside className="hidden md:block w-52 shrink-0">
+        {filtersContent}
+      </aside>
+    </>
   );
 }
