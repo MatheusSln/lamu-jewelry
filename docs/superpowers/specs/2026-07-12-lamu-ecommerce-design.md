@@ -45,9 +45,9 @@ Decisões descartadas: Firebase/Firestore (domínio relacional, filtros composto
 
 ## Vitrine (público)
 
-**Home:** barra de promoção (texto do admin) → header (logo centrado, busca, carrinho, menu de categorias com dropdown de subcategorias) → carrossel de banners → vitrine "Lançamentos" → cards de presente por faixa de preço → vitrine "Mais Vendidos" → vitrine "Promoções" (produtos com preço promocional) → rodapé (WhatsApp, Instagram, formas de pagamento, políticas).
+**Home:** barra de promoção (texto do admin) → header (logo centrado, busca, carrinho, menu de categorias com dropdown de subcategorias) → carrossel de banners → vitrine "Lançamentos" → cards de presente por faixa de preço (links fixos para o catálogo com filtro de preço aplicado; faixas definidas em código nesta versão) → vitrine "Mais Vendidos" → vitrine "Promoções" (produtos com preço promocional) → rodapé (WhatsApp, Instagram, formas de pagamento, políticas).
 
-**Categoria e busca** (`/[categoria]`, `/busca?q=`): grade de cards com filtros laterais (subcategoria, material, faixa de preço) e ordenação (lançamento, menor/maior preço, mais vendidos). Paginação. Card de produto: primeira foto com troca para a segunda no hover, nome, preço (promocional com original riscado), botão de adicionar ao carrinho.
+**Categoria e busca** (`/[categoria]`, `/busca?q=`): grade de cards com filtros laterais (subcategoria, material, faixa de preço) e ordenação (lançamento, menor/maior preço, mais vendidos). Paginação. Card de produto: primeira foto com troca para a segunda no hover, nome, preço (promocional com original riscado), botão de adicionar ao carrinho (produto com variações abre o seletor de variação antes de adicionar).
 
 **Produto** (`/produto/[slug]`): galeria de fotos, preço, seletor de variações (esgotadas visíveis porém desabilitadas), quantidade, "Adicionar ao carrinho" + "Comprar pelo WhatsApp", cálculo de frete por CEP na página, descrição, vitrine "Você também vai gostar" (mesma categoria).
 
