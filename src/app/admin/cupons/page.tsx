@@ -3,6 +3,8 @@ import { coupons } from "@/db/schema";
 import { desc } from "drizzle-orm";
 import { formatBRL } from "@/lib/money";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminCuponsPage() {
   const allCoupons = await db.select().from(coupons).orderBy(desc(coupons.id));
 

@@ -3,6 +3,8 @@ import { db } from "@/db";
 import { categories } from "@/db/schema";
 import { ProductForm } from "../form";
 
+export const dynamic = "force-dynamic";
+
 export default async function NovoProdutoPage() {
   const allCategories = await db.select().from(categories).orderBy(categories.name);
 

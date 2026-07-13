@@ -3,6 +3,8 @@ import { orders, productVariants } from "@/db/schema";
 import { eq, and, gt, desc, sql, inArray, lt } from "drizzle-orm";
 import { formatBRL } from "@/lib/money";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminDashboardPage() {
   const now = new Date();
   const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);

@@ -3,6 +3,8 @@ import { banners } from "@/db/schema";
 import { asc } from "drizzle-orm";
 import Image from "next/image";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminBannersPage() {
   const allBanners = await db.select().from(banners).orderBy(asc(banners.sortOrder));
 
