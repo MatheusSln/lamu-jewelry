@@ -16,7 +16,6 @@ async function main() {
   const passwordHash = await bcrypt.hash(password, 10);
   
   await db.insert(adminUsers).values({
-    name: "Admin Local",
     email,
     passwordHash
   });

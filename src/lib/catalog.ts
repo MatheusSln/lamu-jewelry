@@ -3,18 +3,10 @@ import { db } from "@/db";
 import { banners, categories, products, productVariants, settings } from "@/db/schema";
 import type { CatalogParams } from "./filters";
 
-export type NavCategory = {
-  id: number;
-  name: string;
-  slug: string;
-  children: { id: number; name: string; slug: string }[];
-};
+export type NavCategory = { id: number; name: string; slug: string; children: { id: number; name: string; slug: string }[] };
 
 export async function getNavTree(): Promise<NavCategory[]> {
-  const all = await db
-    .select()
-    .from(categories)
-    .orderBy(asc(categories.sortOrder), asc(categories.name));
+  const all = await db.select().from(categories).orderBy(asc(categories.sortOrder), asc(categories.name));
   return all
     .filter((c) => c.parentId == null)
     .map((parent) => ({
@@ -77,13 +69,7 @@ export async function listProducts(opts: {
   }[params.sort];
 
   const [items, [{ count }]] = await Promise.all([
-    db
-      .select()
-      .from(products)
-      .where(where)
-      .orderBy(...orderBy)
-      .limit(perPage)
-      .offset((params.page - 1) * perPage),
+    db.select().from(products).where(where).orderBy(...orderBy).limit(perPage).offset((params.page - 1) * perPage),
     db.select({ count: sql<number>`count(*)::int` }).from(products).where(where),
   ]);
   return { items, total: count, perPage };
@@ -91,9 +77,7 @@ export async function listProducts(opts: {
 
 export type VariantRow = typeof productVariants.$inferSelect;
 
-export async function getProductBySlug(
-  slug: string,
-): Promise<(ProductRow & { variants: VariantRow[] }) | null> {
+export async function getProductBySlug(slug: string): Promise<(ProductRow & { variants: VariantRow[] }) | null> {
   const [product] = await db
     .select()
     .from(products)
@@ -111,13 +95,7 @@ export async function getRelatedProducts(categoryId: number, excludeId: number, 
   return db
     .select()
     .from(products)
-    .where(
-      and(
-        eq(products.isActive, true),
-        eq(products.categoryId, categoryId),
-        sql`${products.id} <> ${excludeId}`,
-      ),
-    )
+    .where(and(eq(products.isActive, true), eq(products.categoryId, categoryId), sql`${products.id} <> ${excludeId}`))
     .orderBy(desc(products.createdAt))
     .limit(limit);
 }
@@ -125,30 +103,9 @@ export async function getRelatedProducts(categoryId: number, excludeId: number, 
 export async function getHomeVitrines() {
   const base = eq(products.isActive, true);
   const [launches, bestsellers, promos] = await Promise.all([
-    db
-      .select()
-      .from(products)
-      .where(and(base, eq(products.isLaunch, true)))
-      .orderBy(desc(products.createdAt))
-      .limit(8),
-    db
-      .select()
-      .from(products)
-      .where(and(base, eq(products.isBestseller, true)))
-      .orderBy(desc(products.createdAt))
-      .limit(8),
-    db
-      .select()
-      .from(products)
-      .where(
-        and(
-          base,
-          isNotNull(products.promoPriceCents),
-          sql`${products.promoPriceCents} < ${products.priceCents}`,
-        ),
-      )
-      .orderBy(desc(products.updatedAt))
-      .limit(8),
+    db.select().from(products).where(and(base, eq(products.isLaunch, true))).orderBy(desc(products.createdAt)).limit(8),
+    db.select().from(products).where(and(base, eq(products.isBestseller, true))).orderBy(desc(products.createdAt)).limit(8),
+    db.select().from(products).where(and(base, isNotNull(products.promoPriceCents), sql`${products.promoPriceCents} < ${products.priceCents}`)).orderBy(desc(products.updatedAt)).limit(8),
   ]);
   return { launches, bestsellers, promos };
 }
