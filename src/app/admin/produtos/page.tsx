@@ -4,6 +4,7 @@ import { products, productVariants } from "@/db/schema";
 import { formatBRL } from "@/lib/money";
 import { sql } from "drizzle-orm";
 import Image from "next/image";
+import { DeleteProductButton } from "./delete-button";
 
 export const dynamic = "force-dynamic";
 
@@ -87,7 +88,8 @@ export default async function AdminProdutosPage() {
                     )}
                   </td>
                   <td className="py-3 px-4 text-right">
-                    <Link href={`/admin/produtos/${p.id}`} className="text-gold hover:text-gold-dark text-sm tracking-wide">Editar</Link>
+                    <Link href={`/admin/produtos/${p.id}/editar`} className="text-gold hover:text-gold-dark text-sm tracking-wide">Editar</Link>
+                    <DeleteProductButton id={p.id} />
                   </td>
                 </tr>
               ))}
