@@ -56,13 +56,7 @@ export function parseCatalogParams(raw: RawParams): CatalogParams {
 export function buildCatalogHref(
   base: string,
   current: CatalogParams,
-  overrides: Partial<{
-    sub: string | undefined;
-    material: string | undefined;
-    price: string | undefined;
-    sort: SortSlug;
-    page: number;
-  }>,
+  overrides: Partial<{ sub: string | undefined; material: string | undefined; price: string | undefined; sort: SortSlug; page: number }>,
 ): string {
   const sub = "sub" in overrides ? overrides.sub : current.sub;
   const material = "material" in overrides ? overrides.material : current.material;
