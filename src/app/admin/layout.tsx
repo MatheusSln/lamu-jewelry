@@ -34,6 +34,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <Link href="/admin/produtos" className="block px-4 py-2 text-ink hover:bg-cream hover:text-gold rounded transition-colors">
             Produtos
           </Link>
+          <Link href="/admin/categorias" className="block px-4 py-2 text-ink hover:bg-cream hover:text-gold rounded transition-colors">
+            Categorias
+          </Link>
           <Link href="/admin/pedidos" className="block px-4 py-2 text-ink hover:bg-cream hover:text-gold rounded transition-colors">
             Pedidos
           </Link>
