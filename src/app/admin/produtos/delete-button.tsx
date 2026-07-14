@@ -8,16 +8,19 @@ export function DeleteProductButton({ id }: { id: number }) {
 
   function handleDelete() {
     if (confirm("Tem certeza que deseja excluir este produto?")) {
-      startTransition(() => {
+      startTransition(async () => {
         const formData = new FormData();
         formData.append("id", id.toString());
-        deleteProductAction(formData);
+        const result = await deleteProductAction(formData);
+        if (result?.error) {
+          alert(result.error);
+        }
       });
     }
   }
 
   return (
-    <button 
+    <button
       onClick={handleDelete}
       disabled={isPending}
       className="text-red-500 hover:text-red-700 text-sm tracking-wide disabled:opacity-50 ml-4"

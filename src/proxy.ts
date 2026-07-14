@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { verifyAuth } from './lib/auth';
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   // If the user is trying to access an /admin route
   if (request.nextUrl.pathname.startsWith('/admin')) {
     // Let verifyAuth do the cookie checking and HMAC validation
