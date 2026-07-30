@@ -6,6 +6,7 @@ import { ProductGallery } from "@/components/product-gallery";
 import { ProductGrid } from "@/components/product-grid";
 import { SectionHeading } from "@/components/section-heading";
 import { AddToCart } from "@/components/add-to-cart";
+import { getLowStockThreshold } from "@/lib/stock";
 
 export const dynamic = "force-dynamic";
 
@@ -52,6 +53,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               isDefault: v.isDefault,
             }))}
             storeWhatsapp={settings.whatsapp_number || ""}
+            lowStockThreshold={getLowStockThreshold(settings)}
           />
 
           {product.description && (

@@ -21,6 +21,7 @@ export function AddToCart({
   photo,
   variants,
   storeWhatsapp,
+  lowStockThreshold,
 }: {
   productId: number;
   slug: string;
@@ -30,6 +31,8 @@ export function AddToCart({
   photo: string | null;
   variants: BuyableVariant[];
   storeWhatsapp: string;
+  /** Estoque igual ou abaixo disso mostra "últimas unidades" (vem de settings.low_stock_threshold) */
+  lowStockThreshold: number;
 }) {
   const cart = useCart();
   const visible = variants.filter((v) => !v.isDefault || v.label !== "");
@@ -132,7 +135,7 @@ export function AddToCart({
               aria-label="Aumentar quantidade"
             >+</button>
           </div>
-          {maxStock > 0 && maxStock <= 3 && (
+          {maxStock > 0 && maxStock <= lowStockThreshold && (
             <span className="text-xs text-gold">Últimas {maxStock === 1 ? "unidade" : `${maxStock} unidades`}!</span>
           )}
         </div>

@@ -18,3 +18,6 @@ export const ORDER_STATUS_STYLES: Record<string, string> = {
   entregue: "bg-green-100 text-green-800",
   cancelado: "bg-gray-200 text-gray-700",
 };
+
+/** Definição única de "pedido pendente", usada pelo card do dashboard e pelo filtro da listagem. */
+export const PENDING_ORDER_STATUSES = ["aguardando_pagamento", "aguardando_confirmacao", "separando"] as const;
