@@ -38,3 +38,74 @@ body {
 h1, h2, h3, h4 {
   font-family: var(--font-cormorant), serif;
 }
+
+/* Títulos do admin — CSS puro: utilitários de fonte não afetam h1–h4 (a regra
+   de elemento acima está fora de @layer e vence qualquer @layer utilities). */
+.admin-title {
+  font-family: var(--font-cormorant), serif;
+  font-size: 1.875rem;
+  line-height: 1.15;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.admin-subtitle {
+  font-family: var(--font-cormorant), serif;
+  font-size: 1.375rem;
+  line-height: 1.2;
+  font-weight: 500;
+}
+
+.admin-cat-name {
+  font-family: var(--font-cormorant), serif;
+  font-weight: 500;
+}
+
+/* admin › categorias: conectores da árvore de subcategorias. O trilho é
+   desenhado no próprio <li>; como os irmãos são caixas contíguas, top:0/
+   bottom:0 dá uma linha vertical contínua, sem emenda entre linhas. */
+.cat-branch-item {
+  position: relative;
+  padding-left: 2.5rem;
+}
+
+.cat-branch-item::before {
+  content: "";
+  position: absolute;
+  left: 1.125rem;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--gold-light);
+}
+
+.cat-branch-item:last-child::before {
+  bottom: auto;
+  height: 1.25rem; /* o trilho para na curva do último item */
+}
+
+.cat-branch-item::after {
+  content: "";
+  position: absolute;
+  left: 1.125rem;
+  top: 1.25rem;
+  width: 1.125rem;
+  height: 1px;
+  background: var(--gold-light);
+}
+
+/* O rótulo "Subcategorias de …" é a raiz do galho: o trilho desce dele. */
+.cat-branch-head {
+  position: relative;
+  padding-left: 2.5rem;
+}
+
+.cat-branch-head::before {
+  content: "";
+  position: absolute;
+  left: 1.125rem;
+  top: 1.05rem;
+  bottom: 0;
+  width: 1px;
+  background: var(--gold-light);
+}
