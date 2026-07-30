@@ -48,6 +48,20 @@ export async function uploadImages(
       // erro sobe como exceção e o formulário mostra só "erro inesperado".
       console.error("Falha ao enviar imagem para o Vercel Blob:", err);
       const detalhe = err instanceof Error ? err.message : "erro desconhecido";
+
+      // Caso específico e recorrente: store criado com acesso privado. As fotos
+      // da loja precisam ser públicas — são exibidas para qualquer visitante.
+      if (/private store|private access/i.test(detalhe)) {
+        return {
+          error:
+            "O Blob Store da Vercel está configurado como privado, e as fotos da loja " +
+            "precisam ser públicas para aparecerem para as clientes. No painel da Vercel, " +
+            "em Storage, crie um Blob Store com acesso Public (ou troque o acesso do atual), " +
+            "conecte-o a este projeto e faça um novo deploy. " +
+            "Enquanto isso, dá para cadastrar a foto pelo campo de URL.",
+        };
+      }
+
       return {
         error:
           `Não foi possível enviar "${file.name}" (${detalhe}). ` +
