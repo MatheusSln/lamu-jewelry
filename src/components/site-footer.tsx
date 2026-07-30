@@ -1,5 +1,7 @@
+import { waLink } from "@/lib/whatsapp";
+
 export function SiteFooter({ settings }: { settings: Record<string, string> }) {
-  const whatsapp = settings.whatsapp_number?.replace(/\D/g, "");
+  const whatsappUrl = waLink(settings.whatsapp_number ?? "");
   const instagram = settings.instagram_handle?.replace(/^@/, "");
   return (
     <footer className="bg-cream-dark border-t border-gold-light/40 mt-16">
@@ -7,10 +9,10 @@ export function SiteFooter({ settings }: { settings: Record<string, string> }) {
         <div>
           <h3 className="text-lg text-gold mb-3">Atendimento</h3>
           <ul className="space-y-2 text-ink-soft">
-            {whatsapp && (
+            {whatsappUrl && (
               <li>
                 <a
-                  href={`https://wa.me/55${whatsapp}`}
+                  href={whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:text-gold"

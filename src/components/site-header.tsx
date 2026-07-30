@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { NavCategory } from "@/lib/catalog";
 import { MobileMenu } from "./mobile-menu";
+import { CartButton } from "./cart/cart-button";
 
 export function SiteHeader({ nav }: { nav: NavCategory[] }) {
   return (
@@ -22,7 +23,7 @@ export function SiteHeader({ nav }: { nav: NavCategory[] }) {
           <Image src="/brand/logo.jpeg" alt="Lámu" width={72} height={72} className="rounded-full" priority />
         </Link>
         <div className="justify-self-end flex items-center gap-4">
-          <span className="hidden md:inline text-xs text-ink-soft tracking-wide uppercase">Carrinho em breve</span>
+          <CartButton />
         </div>
       </div>
       <nav className="hidden md:block border-t border-gold-light/30">
