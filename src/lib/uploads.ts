@@ -49,6 +49,19 @@ export async function uploadImages(
       console.error("Falha ao enviar imagem para o Vercel Blob:", err);
       const detalhe = err instanceof Error ? err.message : "erro desconhecido";
 
+      // Token aponta para um store que já não existe (o antigo foi apagado e a
+      // variável de ambiente continuou com o token velho).
+      if (/store does not exist|store not found/i.test(detalhe)) {
+        return {
+          error:
+            "A chave de acesso do site aponta para um Blob Store que não existe mais. " +
+            "No painel da Vercel, em Settings → Environment Variables, apague todas as " +
+            "variáveis com BLOB no nome; depois, em Storage, use Connect Project no store " +
+            "atual para gerar a chave de novo e faça um novo deploy. " +
+            "Enquanto isso, dá para cadastrar a foto pelo campo de URL.",
+        };
+      }
+
       // Caso específico e recorrente: store criado com acesso privado. As fotos
       // da loja precisam ser públicas — são exibidas para qualquer visitante.
       if (/private store|private access/i.test(detalhe)) {
