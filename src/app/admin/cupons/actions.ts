@@ -29,7 +29,7 @@ function parseCouponForm(formData: FormData): { data: ParsedCoupon } | { error: 
 
   const value = parseInt(formData.get("value") as string, 10);
   if (!Number.isInteger(value) || value <= 0) {
-    return { error: type === "percent" ? "Informe a porcentagem de desconto (ex.: 10)." : "Informe o desconto em centavos (ex.: 1500 para R$ 15,00)." };
+    return { error: type === "percent" ? "Informe a porcentagem de desconto (ex.: 10)." : "Informe o valor do desconto (ex.: 15,00)." };
   }
   if (type === "percent" && value > 100) {
     return { error: "Desconto percentual não pode passar de 100%." };
@@ -38,7 +38,7 @@ function parseCouponForm(formData: FormData): { data: ParsedCoupon } | { error: 
   const minOrderRaw = ((formData.get("minOrderCents") as string) || "").trim();
   const minOrderCents = minOrderRaw === "" ? 0 : parseInt(minOrderRaw, 10);
   if (!Number.isInteger(minOrderCents) || minOrderCents < 0) {
-    return { error: "Pedido mínimo inválido (em centavos; deixe vazio para nenhum)." };
+    return { error: "Pedido mínimo inválido. Deixe vazio para não exigir valor mínimo." };
   }
 
   const maxUsesRaw = ((formData.get("maxUses") as string) || "").trim();

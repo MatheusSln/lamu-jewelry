@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { centsToInputText, formatBRL, inputTextToCents } from "@/lib/money";
+import { formatBRL } from "@/lib/money";
 import {
   ADMIN_ALERT_ERROR,
   ADMIN_ALERT_OK,
@@ -12,6 +12,7 @@ import {
   ADMIN_INPUT_BARE,
   ADMIN_LABEL,
 } from "../ui";
+import { MoneyInput } from "../money-input";
 import { saveSettingsAction } from "./actions";
 import type { SettingField, SettingSection, SettingWidth } from "./fields";
 
@@ -30,32 +31,22 @@ function MoneyField({
   field: SettingField;
   initialCents: string;
 }) {
-  const [text, setText] = useState(() => centsToInputText(initialCents));
-  const cents = inputTextToCents(text);
+  const [cents, setCents] = useState<number | null>(() => {
+    const n = parseInt(initialCents, 10);
+    return Number.isFinite(n) ? n : null;
+  });
   const previewId = `${id}-preview`;
   const hintId = `${id}-hint`;
 
   return (
     <>
-      <div className={ADMIN_FIELD_SHELL}>
-        <span className="shrink-0 select-none border-r border-gold-light/50 pr-2.5 text-sm text-ink-soft">
-          R$
-        </span>
-        <input
-          id={id}
-          type="text"
-          inputMode="decimal"
-          value={text}
-          onChange={(e) => setText(e.target.value.replace(/[^\d.,]/g, ""))}
-          onBlur={() => setText(cents === null ? "" : centsToInputText(cents))}
-          placeholder="0,00"
-          aria-describedby={`${previewId} ${hintId}`}
-          className={`${ADMIN_INPUT_BARE} tabular-nums`}
-        />
-      </div>
-
-      {/* É este valor que vai para o banco: inteiro em centavos, formato inalterado. */}
-      <input type="hidden" name={field.key} value={cents === null ? "" : String(cents)} />
+      <MoneyInput
+        id={id}
+        name={field.key}
+        defaultCents={initialCents}
+        onCentsChange={setCents}
+        describedBy={`${previewId} ${hintId}`}
+      />
 
       <p id={previewId} aria-live="polite" className="mt-2 text-sm text-ink">
         {cents === null ? (

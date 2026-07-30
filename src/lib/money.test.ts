@@ -60,8 +60,19 @@ describe("inputTextToCents", () => {
     expect(inputTextToCents("abc")).toBeNull();
   });
 
-  it("negativo vira null", () => {
+  it("negativo vira null por padrao", () => {
     expect(inputTextToCents("-10")).toBeNull();
+  });
+
+  it("aceita negativo com allowNegative", () => {
+    expect(inputTextToCents("-10", { allowNegative: true })).toBe(-1000);
+    expect(inputTextToCents("-1.299,90", { allowNegative: true })).toBe(-129990);
+    expect(inputTextToCents("10", { allowNegative: true })).toBe(1000);
+    expect(inputTextToCents("", { allowNegative: true })).toBeNull();
+  });
+
+  it("centsToInputText formata negativo", () => {
+    expect(centsToInputText(-1000)).toBe("-10,00");
   });
 
   it("faz o round-trip completo", () => {

@@ -15,6 +15,7 @@ import {
   ADMIN_PILL_ACTIVE,
   ADMIN_PILL_INACTIVE,
 } from "../ui";
+import { MoneyInput } from "../money-input";
 import { saveCouponAction, updateCouponAction, deleteCouponAction } from "./actions";
 
 type Coupon = typeof coupons.$inferSelect;
@@ -84,30 +85,43 @@ function CouponForm({ coupon, onDone }: { coupon?: Coupon; onDone: () => void })
         </div>
         <div>
           <label htmlFor={`${idPrefix}-value`} className={ADMIN_LABEL}>
-            {type === "percent" ? "Desconto (%)" : "Desconto (centavos)"}
+            {type === "percent" ? "Desconto (%)" : "Desconto"}
           </label>
-          <input
-            id={`${idPrefix}-value`}
-            type="number"
-            name="value"
-            required
-            min={1}
-            defaultValue={coupon?.value}
-            placeholder={type === "percent" ? "Ex: 10 (= 10%)" : "Ex: 1500 (= R$ 15,00)"}
-            className={ADMIN_INPUT}
-          />
+          {type === "percent" ? (
+            <input
+              // key por tipo: 10 como "10%" e 10 como "R$ 10,00" são coisas
+              // diferentes, então trocar o tipo limpa o campo em vez de
+              // reinterpretar o número em silêncio.
+              key="percent"
+              id={`${idPrefix}-value`}
+              type="number"
+              name="value"
+              required
+              min={1}
+              max={100}
+              defaultValue={coupon?.type === "percent" ? coupon.value : ""}
+              placeholder="Ex: 10 (= 10%)"
+              className={ADMIN_INPUT}
+            />
+          ) : (
+            <MoneyInput
+              key="fixed"
+              id={`${idPrefix}-value`}
+              name="value"
+              defaultCents={coupon?.type === "fixed" ? coupon.value : null}
+              required
+            />
+          )}
         </div>
         <div>
-          <label htmlFor={`${idPrefix}-min`} className={ADMIN_LABEL}>Pedido mínimo (centavos)</label>
-          <input
+          <label htmlFor={`${idPrefix}-min`} className={ADMIN_LABEL}>Pedido mínimo</label>
+          <MoneyInput
             id={`${idPrefix}-min`}
-            type="number"
             name="minOrderCents"
-            min={0}
-            defaultValue={coupon?.minOrderCents || ""}
-            placeholder="Vazio = sem mínimo"
-            className={ADMIN_INPUT}
+            defaultCents={coupon?.minOrderCents || null}
+            describedBy={`${idPrefix}-min-hint`}
           />
+          <p id={`${idPrefix}-min-hint`} className="text-xs text-ink-soft mt-1.5">Vazio = sem mínimo.</p>
         </div>
         <div>
           <label htmlFor={`${idPrefix}-maxuses`} className={ADMIN_LABEL}>Limite de usos</label>

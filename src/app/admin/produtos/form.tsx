@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { categories } from "@/db/schema";
 import { ADMIN_ALERT_ERROR, ADMIN_BTN_GHOST, ADMIN_BTN_PRIMARY, ADMIN_INPUT, ADMIN_LABEL, ADMIN_LINK_DANGER } from "../ui";
+import { MoneyInput } from "../money-input";
 import { saveProductAction, updateProductAction } from "./actions";
 
 type Category = typeof categories.$inferSelect;
@@ -14,7 +15,13 @@ export type VariantData = {
   stock: number;
   priceDeltaCents: number;
   isDefault: boolean;
+  /** Chave de lista só do cliente: o campo de preço guarda o texto digitado em
+   *  estado próprio, então a linha precisa de key estável ao remover variações. */
+  uid?: string;
 };
+
+let uidCounter = 0;
+const nextUid = () => `v${++uidCounter}`;
 
 export type ProductInitialData = {
   id?: number;
@@ -36,8 +43,10 @@ export function ProductForm({ categories, initialData }: { categories: Category[
   const [error, setError] = useState<string | null>(null);
   const [photos, setPhotos] = useState<string[]>(initialData?.photos ?? []);
   const [filePreviews, setFilePreviews] = useState<string[]>([]);
-  const [variants, setVariants] = useState<VariantData[]>(
-    initialData?.variants ?? [{ label: "", stock: 0, priceDeltaCents: 0, isDefault: true }]
+  const [variants, setVariants] = useState<VariantData[]>(() =>
+    (initialData?.variants ?? [{ label: "", stock: 0, priceDeltaCents: 0, isDefault: true }]).map(
+      (v) => ({ ...v, uid: v.uid ?? nextUid() }),
+    )
   );
 
   // Object URLs dos previews de upload precisam ser revogados no unmount,
@@ -70,7 +79,7 @@ export function ProductForm({ categories, initialData }: { categories: Category[
   }
 
   function addVariant() {
-    setVariants([...variants, { label: "", stock: 0, priceDeltaCents: 0, isDefault: false }]);
+    setVariants([...variants, { label: "", stock: 0, priceDeltaCents: 0, isDefault: false, uid: nextUid() }]);
   }
 
   function updateVariant(index: number, field: keyof VariantData, value: string | number) {
@@ -154,29 +163,27 @@ export function ProductForm({ categories, initialData }: { categories: Category[
           </select>
         </div>
         <div>
-          <label htmlFor="prod-price" className={ADMIN_LABEL}>Preço (em centavos)</label>
-          <input
+          <label htmlFor="prod-price" className={ADMIN_LABEL}>Preço</label>
+          <MoneyInput
             id="prod-price"
-            type="number"
             name="priceCents"
+            defaultCents={initialData?.priceCents}
             required
-            min={1}
-            defaultValue={initialData?.priceCents}
-            placeholder="Ex: 8990 (R$ 89,90)"
-            className={ADMIN_INPUT}
+            describedBy="prod-price-hint"
           />
+          <p id="prod-price-hint" className="text-xs text-ink-soft mt-1.5">Ex.: 159,00</p>
         </div>
         <div>
-          <label htmlFor="prod-promo-price" className={ADMIN_LABEL}>Preço Promocional (centavos)</label>
-          <input
+          <label htmlFor="prod-promo-price" className={ADMIN_LABEL}>Preço promocional</label>
+          <MoneyInput
             id="prod-promo-price"
-            type="number"
             name="promoPriceCents"
-            min={1}
-            defaultValue={initialData?.promoPriceCents ?? ""}
-            placeholder="Deixe vazio se não houver promoção"
-            className={ADMIN_INPUT}
+            defaultCents={initialData?.promoPriceCents}
+            describedBy="prod-promo-hint"
           />
+          <p id="prod-promo-hint" className="text-xs text-ink-soft mt-1.5">
+            Deixe vazio se não houver promoção.
+          </p>
         </div>
         <div>
           <label htmlFor="prod-material" className={ADMIN_LABEL}>Material</label>
@@ -276,6 +283,7 @@ export function ProductForm({ categories, initialData }: { categories: Category[
             <span className="text-[11px] tracking-[0.16em] uppercase text-ink-soft">Estoque e Variações</span>
             <p className="text-[11px] text-ink-soft mt-1">
               Deixe o nome em branco se o produto não tem tamanhos ou cores diferentes.
+              A diferença de preço soma ao preço do produto — use um valor negativo para baratear.
             </p>
           </div>
           <button type="button" onClick={addVariant} className="text-xs text-gold hover:underline uppercase tracking-wider">
@@ -283,9 +291,16 @@ export function ProductForm({ categories, initialData }: { categories: Category[
           </button>
         </div>
 
+        <div className="grid grid-cols-[1fr_100px_150px_auto] gap-2 text-[10px] uppercase tracking-[0.15em] text-ink-soft mb-2">
+          <span>Nome</span>
+          <span>Estoque</span>
+          <span>Diferença de preço</span>
+          <span />
+        </div>
+
         <div className="space-y-4">
           {variants.map((v, index) => (
-            <div key={index} className="grid grid-cols-[1fr_100px_120px_auto] gap-2 items-center">
+            <div key={v.uid ?? v.id} className="grid grid-cols-[1fr_100px_150px_auto] gap-2 items-center">
               <input
                 type="text"
                 value={v.label}
@@ -299,19 +314,17 @@ export function ProductForm({ categories, initialData }: { categories: Category[
                 value={v.stock}
                 min={0}
                 onChange={(e) => updateVariant(index, "stock", parseInt(e.target.value, 10) || 0)}
-                placeholder="Estoque"
+                placeholder="0"
                 title="Quantidade em estoque"
                 aria-label={`Estoque da variação ${index + 1}`}
                 className={ADMIN_INPUT}
               />
-              <input
-                type="number"
-                value={v.priceDeltaCents}
-                onChange={(e) => updateVariant(index, "priceDeltaCents", parseInt(e.target.value, 10) || 0)}
-                placeholder="+ R$ 0,00 (centavos)"
-                title="Diferença de preço (+ ou - em centavos)"
-                aria-label={`Diferença de preço da variação ${index + 1}`}
-                className={ADMIN_INPUT}
+              <MoneyInput
+                defaultCents={v.priceDeltaCents}
+                onCentsChange={(cents) => updateVariant(index, "priceDeltaCents", cents ?? 0)}
+                allowNegative
+                placeholder="0,00"
+                ariaLabel={`Diferença de preço da variação ${index + 1} (use - para baratear)`}
               />
               <button
                 type="button"

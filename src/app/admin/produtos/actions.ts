@@ -31,7 +31,7 @@ function parseProductForm(formData: FormData): { data: ParsedProduct } | { error
 
   const priceCents = parseInt(formData.get("priceCents") as string, 10);
   if (!Number.isInteger(priceCents) || priceCents <= 0) {
-    return { error: "Preço inválido. Informe o valor em centavos (ex.: 8990 para R$ 89,90)." };
+    return { error: "Preço inválido. Informe um valor maior que zero (ex.: 159,00)." };
   }
 
   const promoRaw = ((formData.get("promoPriceCents") as string) || "").trim();

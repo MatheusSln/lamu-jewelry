@@ -19,10 +19,13 @@ type Category = typeof categories.$inferSelect;
 function CategoryForm({
   category,
   parents,
+  defaultParentId,
   onDone,
 }: {
   category?: Category;
   parents: Category[];
+  /** Pré-seleciona a categoria pai ao criar (botão "+ Subcategoria" do bloco). */
+  defaultParentId?: number | null;
   onDone: () => void;
 }) {
   const [pending, setPending] = useState(false);
@@ -73,7 +76,7 @@ function CategoryForm({
         </div>
         <div>
           <label htmlFor={idParent} className={ADMIN_LABEL}>Categoria pai</label>
-          <select id={idParent} name="parentId" defaultValue={category?.parentId ?? ""} className={ADMIN_INPUT}>
+          <select id={idParent} name="parentId" defaultValue={category?.parentId ?? defaultParentId ?? ""} className={ADMIN_INPUT}>
             <option value="">Nenhuma (categoria principal)</option>
             {parentOptions.map((p) => (
               <option key={p.id} value={p.id}>{p.name}</option>
@@ -131,9 +134,24 @@ export function CategoriasManager({
 }) {
   const [editing, setEditing] = useState<Category | null>(null);
   const [creating, setCreating] = useState(false);
+  /** Categoria pai escolhida pelo botão "+ Subcategoria" de um bloco. */
+  const [creatingUnder, setCreatingUnder] = useState<Category | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
-  const formOpen = creating || editing !== null;
+  const formOpen = creating || creatingUnder !== null || editing !== null;
+
+  function closeForm() {
+    setEditing(null);
+    setCreating(false);
+    setCreatingUnder(null);
+  }
+
+  function startSubcategory(parent: Category) {
+    setEditing(null);
+    setCreating(false);
+    setCreatingUnder(parent);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
   const parents = allCategories.filter((c) => c.parentId === null);
   const blocks = parents.map((parent) => ({
     parent,
@@ -153,6 +171,7 @@ export function CategoriasManager({
   function startEdit(c: Category) {
     setEditing(c);
     setCreating(false);
+    setCreatingUnder(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -178,7 +197,7 @@ export function CategoriasManager({
       <div className="flex justify-between items-center">
         <h1 className="admin-title text-ink">Categorias</h1>
         <button
-          onClick={() => { setCreating(!creating); setEditing(null); }}
+          onClick={() => (formOpen ? closeForm() : setCreating(true))}
           className={ADMIN_BTN_PRIMARY}
         >
           {formOpen ? "Fechar" : "+ Nova Categoria"}
@@ -189,14 +208,19 @@ export function CategoriasManager({
         <div className={ADMIN_CARD}>
           <div className="p-4 border-b border-gold-light/30">
             <h2 className="text-sm tracking-widest uppercase text-ink-soft">
-              {editing ? `Editar categoria ${editing.name}` : "Nova Categoria"}
+              {editing
+                ? `Editar categoria ${editing.name}`
+                : creatingUnder
+                  ? `Nova subcategoria de ${creatingUnder.name}`
+                  : "Nova Categoria"}
             </h2>
           </div>
           <CategoryForm
-            key={editing?.id ?? "new"}
+            key={editing?.id ?? (creatingUnder ? `sub-${creatingUnder.id}` : "new")}
             category={editing ?? undefined}
             parents={parents}
-            onDone={() => { setEditing(null); setCreating(false); }}
+            defaultParentId={creatingUnder?.id}
+            onDone={closeForm}
           />
         </div>
       )}
@@ -253,7 +277,7 @@ export function CategoriasManager({
                     <p className="cat-branch-head pb-1 pt-3 text-[10px] uppercase tracking-[0.18em] text-gold-dark">
                       Subcategorias de {parent.name}
                     </p>
-                    <ul className="pb-3">
+                    <ul>
                       {children.map((c) => (
                         <li key={c.id} className={`${ROW_GRID} cat-branch-item py-2.5 pr-5 hover:bg-cream/60 transition-colors`}>
                           <span className="min-w-0 text-sm text-ink">{c.name}</span>
@@ -264,11 +288,19 @@ export function CategoriasManager({
                         </li>
                       ))}
                     </ul>
+                    <div className="pl-10 pr-5 pb-4 pt-2">
+                      <button onClick={() => startSubcategory(parent)} className="text-xs text-gold hover:text-gold-dark uppercase tracking-wider">
+                        + Adicionar subcategoria em {parent.name}
+                      </button>
+                    </div>
                   </>
                 ) : (
-                  <p className="px-5 pb-4 pt-1 text-[11px] italic text-ink-soft">
-                    Nenhuma subcategoria.
-                  </p>
+                  <div className="px-5 pb-4 pt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <span className="text-[11px] italic text-ink-soft">Nenhuma subcategoria.</span>
+                    <button onClick={() => startSubcategory(parent)} className="text-xs text-gold hover:text-gold-dark uppercase tracking-wider">
+                      + Adicionar subcategoria em {parent.name}
+                    </button>
+                  </div>
                 )}
               </section>
             );

@@ -25,10 +25,17 @@ export function centsToInputText(cents: string | number): string {
  * Texto digitado em reais para centavos inteiros (ou null se vazio/invalido).
  * Aceita separador de milhar "." e decimal "," ou so decimal.
  * Ex.: "199" para 19900; "199,5" para 19950; "1.299,90" para 129990; "" para null.
+ *
+ * Negativo so e aceito com allowNegative (usado na diferenca de preco de
+ * variacao, que pode baixar o preco: "-10,00" para -1000).
  */
-export function inputTextToCents(text: string): number | null {
+export function inputTextToCents(
+  text: string,
+  opts: { allowNegative?: boolean } = {},
+): number | null {
   const trimmed = text.trim();
-  if (trimmed.startsWith("-")) return null;
+  const negative = trimmed.startsWith("-");
+  if (negative && !opts.allowNegative) return null;
 
   const cleaned = trimmed.replace(/[^\d,.]/g, "");
   if (cleaned === "") return null;
@@ -48,5 +55,6 @@ export function inputTextToCents(text: string): number | null {
 
   const reais = Number(normalized);
   if (!Number.isFinite(reais) || reais < 0) return null;
-  return Math.round(reais * 100);
+  const cents = Math.round(reais * 100);
+  return negative ? -cents : cents;
 }
