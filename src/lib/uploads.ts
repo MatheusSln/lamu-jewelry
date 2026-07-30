@@ -15,10 +15,17 @@ export async function uploadImages(
   if (files.length === 0) return { urls: [] };
 
   if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    // A mensagem muda por ambiente: na Vercel o .env.local não existe, então
+    // mandar o admin editar arquivo local seria instrução errada.
+    const naVercel = Boolean(process.env.VERCEL);
     return {
-      error:
-        "Upload de imagens não configurado neste ambiente: falta BLOB_READ_WRITE_TOKEN no .env.local " +
-        "(copie de Vercel → Storage → Blob → .env.local). Enquanto isso, use o campo de URL.",
+      error: naVercel
+        ? "Upload de imagens não configurado neste site: falta a variável BLOB_READ_WRITE_TOKEN. " +
+          "No painel da Vercel, abra Storage, crie ou selecione um Blob Store, use \"Connect Project\" " +
+          "para ligá-lo a este projeto (marcando Production) e faça um novo deploy. " +
+          "Enquanto isso, dá para cadastrar a foto pelo campo de URL."
+        : "Upload de imagens não configurado neste ambiente: falta BLOB_READ_WRITE_TOKEN no .env.local " +
+          "(copie de Vercel → Storage → Blob → .env.local). Enquanto isso, use o campo de URL.",
     };
   }
 
@@ -30,11 +37,24 @@ export async function uploadImages(
     if (file.size > MAX_FILE_BYTES) {
       return { error: `"${file.name}" passa de 8MB. Reduza a imagem e tente de novo.` };
     }
-    const blob = await put(file.name, file, {
-      access: "public",
-      addRandomSuffix: true,
-    });
-    urls.push(blob.url);
+    try {
+      const blob = await put(file.name, file, {
+        access: "public",
+        addRandomSuffix: true,
+      });
+      urls.push(blob.url);
+    } catch (err) {
+      // Token inválido/expirado ou falha de rede caem aqui. Sem este catch o
+      // erro sobe como exceção e o formulário mostra só "erro inesperado".
+      console.error("Falha ao enviar imagem para o Vercel Blob:", err);
+      const detalhe = err instanceof Error ? err.message : "erro desconhecido";
+      return {
+        error:
+          `Não foi possível enviar "${file.name}" (${detalhe}). ` +
+          "Se o problema persistir, confira o Blob Store no painel da Vercel. " +
+          "Enquanto isso, dá para cadastrar a foto pelo campo de URL.",
+      };
+    }
   }
   return { urls };
 }
