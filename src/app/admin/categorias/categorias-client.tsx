@@ -2,12 +2,19 @@
 
 import { useState } from "react";
 import type { categories } from "@/db/schema";
+import {
+  ADMIN_ALERT_ERROR,
+  ADMIN_BTN_GHOST,
+  ADMIN_BTN_PRIMARY,
+  ADMIN_CARD,
+  ADMIN_INPUT,
+  ADMIN_LABEL,
+  ADMIN_LINK,
+  ADMIN_LINK_DANGER,
+} from "../ui";
 import { saveCategoryAction, updateCategoryAction, deleteCategoryAction } from "./actions";
 
 type Category = typeof categories.$inferSelect;
-
-const inputClass =
-  "w-full bg-transparent border border-gold-light/50 rounded px-3 py-2 text-sm focus:outline-none focus:border-gold";
 
 function CategoryForm({
   category,
@@ -48,22 +55,25 @@ function CategoryForm({
 
   // Uma categoria não pode ser pai de si mesma
   const parentOptions = parents.filter((p) => p.id !== category?.id);
+  const idName = category ? `cat-${category.id}-name` : "cat-new-name";
+  const idParent = category ? `cat-${category.id}-parent` : "cat-new-parent";
+  const idSort = category ? `cat-${category.id}-sort` : "cat-new-sort";
 
   return (
     <form onSubmit={handleSubmit} className="p-4 space-y-4">
       {error && (
-        <div className="bg-red-50 border border-red-300 text-red-800 rounded px-3 py-2 text-sm" role="alert">
+        <div className={ADMIN_ALERT_ERROR} role="alert">
           {error}
         </div>
       )}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
-          <label className="block text-xs tracking-widest uppercase text-ink-soft mb-1">Nome</label>
-          <input type="text" name="name" required defaultValue={category?.name} placeholder="Ex: Brincos" className={inputClass} />
+          <label htmlFor={idName} className={ADMIN_LABEL}>Nome</label>
+          <input id={idName} type="text" name="name" required defaultValue={category?.name} placeholder="Ex: Brincos" className={ADMIN_INPUT} />
         </div>
         <div>
-          <label className="block text-xs tracking-widest uppercase text-ink-soft mb-1">Categoria pai</label>
-          <select name="parentId" defaultValue={category?.parentId ?? ""} className={inputClass}>
+          <label htmlFor={idParent} className={ADMIN_LABEL}>Categoria pai</label>
+          <select id={idParent} name="parentId" defaultValue={category?.parentId ?? ""} className={ADMIN_INPUT}>
             <option value="">Nenhuma (categoria principal)</option>
             {parentOptions.map((p) => (
               <option key={p.id} value={p.id}>{p.name}</option>
@@ -71,28 +81,46 @@ function CategoryForm({
           </select>
         </div>
         <div>
-          <label className="block text-xs tracking-widest uppercase text-ink-soft mb-1">Ordem no menu</label>
-          <input type="number" name="sortOrder" defaultValue={category?.sortOrder ?? 0} className={inputClass} />
+          <label htmlFor={idSort} className={ADMIN_LABEL}>Ordem no menu</label>
+          <input id={idSort} type="number" name="sortOrder" defaultValue={category?.sortOrder ?? 0} className={ADMIN_INPUT} />
         </div>
       </div>
-      <p className="text-[11px] text-ink-soft">
+      <p className="text-xs text-ink-soft">
         A URL (slug) é gerada automaticamente a partir do nome{category ? " e só muda se o nome mudar" : ""}.
       </p>
       <div className="flex justify-end gap-2">
-        <button type="button" onClick={onDone} className="px-4 py-2 border border-gold-light/50 rounded text-sm text-ink hover:bg-cream transition-colors">
+        <button type="button" onClick={onDone} className={ADMIN_BTN_GHOST}>
           Cancelar
         </button>
-        <button
-          type="submit"
-          disabled={pending}
-          className="bg-gold hover:bg-gold-dark text-cream px-4 py-2 rounded text-sm tracking-widest uppercase transition-colors disabled:opacity-50"
-        >
+        <button type="submit" disabled={pending} className={ADMIN_BTN_PRIMARY}>
           {pending ? "Salvando..." : "Salvar"}
         </button>
       </div>
     </form>
   );
 }
+
+/** Linha de metadado da categoria: no desktop é só o valor; no mobile ganha um rótulo inline. */
+function Meta({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="min-w-0 text-sm text-ink-soft">
+      <span className="mr-1.5 text-[10px] uppercase tracking-[0.15em] text-ink-soft/70 md:hidden">
+        {label}
+      </span>
+      <span className="break-all md:break-normal">{children}</span>
+    </div>
+  );
+}
+
+function productLabel(n: number): string {
+  if (n === 0) return "Nenhum produto";
+  return n === 1 ? "1 produto" : `${n} produtos`;
+}
+
+// Colunas fixas à direita (Slug/Produtos/Ordem/Ações); a coluna do nome absorve
+// toda a folga, então pai e filha ficam alinhados mesmo com o nome da filha
+// recuado pelo trilho da árvore.
+const ROW_GRID = "md:grid md:grid-cols-[minmax(0,1fr)_10rem_11rem_5rem_9rem] md:items-center gap-x-4 gap-y-1";
 
 export function CategoriasManager({
   categories: allCategories,
@@ -107,15 +135,10 @@ export function CategoriasManager({
 
   const formOpen = creating || editing !== null;
   const parents = allCategories.filter((c) => c.parentId === null);
-
-  // Ordena: cada pai seguido das suas filhas
-  const ordered: (Category & { isChild: boolean })[] = [];
-  for (const parent of parents) {
-    ordered.push({ ...parent, isChild: false });
-    for (const child of allCategories.filter((c) => c.parentId === parent.id)) {
-      ordered.push({ ...child, isChild: true });
-    }
-  }
+  const blocks = parents.map((parent) => ({
+    parent,
+    children: allCategories.filter((c) => c.parentId === parent.id),
+  }));
 
   async function handleDelete(c: Category) {
     if (!confirm(`Excluir a categoria "${c.name}"?`)) return;
@@ -127,20 +150,43 @@ export function CategoriasManager({
     setDeletingId(null);
   }
 
+  function startEdit(c: Category) {
+    setEditing(c);
+    setCreating(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function RowActions({ category }: { category: Category }) {
+    return (
+      <div className="flex gap-4 whitespace-nowrap pt-1.5 md:justify-end md:pt-0">
+        <button onClick={() => startEdit(category)} className={ADMIN_LINK}>
+          Editar
+        </button>
+        <button
+          onClick={() => handleDelete(category)}
+          disabled={deletingId === category.id}
+          className={ADMIN_LINK_DANGER}
+        >
+          {deletingId === category.id ? "Excluindo..." : "Excluir"}
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-serif text-ink">Categorias</h1>
+        <h1 className="admin-title text-ink">Categorias</h1>
         <button
           onClick={() => { setCreating(!creating); setEditing(null); }}
-          className="bg-gold hover:bg-gold-dark text-cream px-4 py-2 text-sm tracking-widest uppercase transition-colors"
+          className={ADMIN_BTN_PRIMARY}
         >
           {formOpen ? "Fechar" : "+ Nova Categoria"}
         </button>
       </div>
 
       {formOpen && (
-        <div className="bg-card border border-gold-light/40 rounded-lg shadow-sm">
+        <div className={ADMIN_CARD}>
           <div className="p-4 border-b border-gold-light/30">
             <h2 className="text-sm tracking-widest uppercase text-ink-soft">
               {editing ? `Editar categoria ${editing.name}` : "Nova Categoria"}
@@ -155,50 +201,79 @@ export function CategoriasManager({
         </div>
       )}
 
-      <div className="bg-card border border-gold-light/40 rounded-lg shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[640px]">
-            <thead>
-              <tr className="border-b border-gold-light/30 text-xs tracking-widest uppercase text-ink-soft">
-                <th className="py-3 px-4">Categoria</th>
-                <th className="py-3 px-4">Slug (URL)</th>
-                <th className="py-3 px-4">Produtos</th>
-                <th className="py-3 px-4">Ordem</th>
-                <th className="py-3 px-4 text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {ordered.length === 0 ? (
-                <tr><td colSpan={5} className="py-6 text-center text-ink-soft">Nenhuma categoria cadastrada.</td></tr>
-              ) : ordered.map((c) => (
-                <tr key={c.id} className="border-b border-gold-light/20 hover:bg-cream/50">
-                  <td className="py-3 px-4 font-medium">
-                    {c.isChild && <span className="text-ink-soft mr-2">└</span>}
-                    {c.name}
-                  </td>
-                  <td className="py-3 px-4 text-ink-soft">/{c.slug}</td>
-                  <td className="py-3 px-4 text-ink-soft">{productCounts[c.id] ?? 0}</td>
-                  <td className="py-3 px-4 text-ink-soft">{c.sortOrder}</td>
-                  <td className="py-3 px-4 text-right whitespace-nowrap">
-                    <button
-                      onClick={() => { setEditing(c); setCreating(false); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-                      className="text-gold hover:text-gold-dark text-sm tracking-wide"
-                    >
-                      Editar
-                    </button>
-                    <button
-                      onClick={() => handleDelete(c)}
-                      disabled={deletingId === c.id}
-                      className="text-red-500 hover:text-red-700 text-sm tracking-wide disabled:opacity-50 ml-4"
-                    >
-                      {deletingId === c.id ? "Excluindo..." : "Excluir"}
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <div className={ADMIN_CARD}>
+        {/* Cabeçalho de colunas — só no desktop; no mobile cada linha traz o rótulo embutido */}
+        <div className={`${ROW_GRID} hidden border-b border-gold-light/30 px-5 py-3 text-[10px] uppercase tracking-[0.18em] text-ink-soft md:grid`}>
+          <span>Categoria</span>
+          <span>Slug (URL)</span>
+          <span>Produtos</span>
+          <span>Ordem</span>
+          <span className="text-right">Ações</span>
         </div>
+
+        {blocks.length === 0 ? (
+          <p className="py-8 text-center text-sm text-ink-soft">Nenhuma categoria cadastrada.</p>
+        ) : (
+          blocks.map(({ parent, children }) => {
+            const childProducts = children.reduce((s, c) => s + (productCounts[c.id] ?? 0), 0);
+
+            return (
+              <section key={parent.id} className="border-b border-gold-light/30 last:border-b-0">
+                {/* Categoria principal */}
+                <div className={`${ROW_GRID} bg-cream/45 px-5 py-4`}>
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-baseline gap-x-2.5">
+                      <span className="admin-cat-name text-lg text-ink">{parent.name}</span>
+                      <span className="text-[10px] uppercase tracking-[0.15em] text-ink-soft">
+                        Categoria principal
+                      </span>
+                    </div>
+                    {children.length > 0 && (
+                      <p className="mt-0.5 text-[11px] text-ink-soft">
+                        {children.length === 1 ? "1 subcategoria" : `${children.length} subcategorias`}
+                      </p>
+                    )}
+                  </div>
+                  <Meta label="Slug">/{parent.slug}</Meta>
+                  <Meta label="Produtos">
+                    {productLabel(productCounts[parent.id] ?? 0)}
+                    {childProducts > 0 && (
+                      <span className="block text-[11px] text-ink-soft/80">
+                        + {childProducts} nas subcategorias
+                      </span>
+                    )}
+                  </Meta>
+                  <Meta label="Ordem">{parent.sortOrder}</Meta>
+                  <RowActions category={parent} />
+                </div>
+
+                {/* Subcategorias */}
+                {children.length > 0 ? (
+                  <>
+                    <p className="cat-branch-head pb-1 pt-3 text-[10px] uppercase tracking-[0.18em] text-gold-dark">
+                      Subcategorias de {parent.name}
+                    </p>
+                    <ul className="pb-3">
+                      {children.map((c) => (
+                        <li key={c.id} className={`${ROW_GRID} cat-branch-item py-2.5 pr-5 hover:bg-cream/60 transition-colors`}>
+                          <span className="min-w-0 text-sm text-ink">{c.name}</span>
+                          <Meta label="Slug">/{c.slug}</Meta>
+                          <Meta label="Produtos">{productLabel(productCounts[c.id] ?? 0)}</Meta>
+                          <Meta label="Ordem">{c.sortOrder}</Meta>
+                          <RowActions category={c} />
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                ) : (
+                  <p className="px-5 pb-4 pt-1 text-[11px] italic text-ink-soft">
+                    Nenhuma subcategoria.
+                  </p>
+                )}
+              </section>
+            );
+          })
+        )}
       </div>
     </div>
   );
