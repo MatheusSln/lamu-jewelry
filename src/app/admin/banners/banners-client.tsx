@@ -3,16 +3,22 @@
 import { useState } from "react";
 import Image from "next/image";
 import type { banners } from "@/db/schema";
+import {
+  ADMIN_ALERT_ERROR,
+  ADMIN_BTN_GHOST,
+  ADMIN_BTN_PRIMARY,
+  ADMIN_CARD,
+  ADMIN_INPUT,
+  ADMIN_LABEL,
+} from "../ui";
 import { saveBannerAction, updateBannerAction, deleteBannerAction } from "./actions";
 
 type Banner = typeof banners.$inferSelect;
 
-const inputClass =
-  "w-full bg-transparent border border-gold-light/50 rounded px-3 py-2 text-sm focus:outline-none focus:border-gold";
-
 function BannerForm({ banner, onDone }: { banner?: Banner; onDone: () => void }) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const idPrefix = banner ? `banner-${banner.id}` : "banner-new";
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -42,31 +48,32 @@ function BannerForm({ banner, onDone }: { banner?: Banner; onDone: () => void })
   return (
     <form onSubmit={handleSubmit} className="p-4 space-y-3">
       {error && (
-        <div className="bg-red-50 border border-red-300 text-red-800 rounded px-3 py-2 text-sm" role="alert">
+        <div className={ADMIN_ALERT_ERROR} role="alert">
           {error}
         </div>
       )}
       <div>
-        <label className="block text-xs tracking-widest uppercase text-ink-soft mb-1">Imagem (upload)</label>
+        <label htmlFor={`${idPrefix}-upload`} className={ADMIN_LABEL}>Imagem (upload)</label>
         <input
+          id={`${idPrefix}-upload`}
           type="file"
           name="newImage"
           accept="image/*"
-          className={`${inputClass} file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-gold file:text-cream cursor-pointer`}
+          className={`${ADMIN_INPUT} file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-gold file:text-cream cursor-pointer`}
         />
       </div>
       <div>
-        <label className="block text-xs tracking-widest uppercase text-ink-soft mb-1">ou URL da imagem</label>
-        <input type="text" name="imageUrl" defaultValue={banner?.imageUrl} placeholder="https://..." className={inputClass} />
+        <label htmlFor={`${idPrefix}-url`} className={ADMIN_LABEL}>ou URL da imagem</label>
+        <input id={`${idPrefix}-url`} type="text" name="imageUrl" defaultValue={banner?.imageUrl} placeholder="https://..." className={ADMIN_INPUT} />
       </div>
       <div>
-        <label className="block text-xs tracking-widest uppercase text-ink-soft mb-1">Link ao clicar (opcional)</label>
-        <input type="text" name="linkUrl" defaultValue={banner?.linkUrl} placeholder="/colares ou https://..." className={inputClass} />
+        <label htmlFor={`${idPrefix}-link`} className={ADMIN_LABEL}>Link ao clicar (opcional)</label>
+        <input id={`${idPrefix}-link`} type="text" name="linkUrl" defaultValue={banner?.linkUrl} placeholder="/colares ou https://..." className={ADMIN_INPUT} />
       </div>
       <div className="flex items-center gap-4">
         <div className="flex-1">
-          <label className="block text-xs tracking-widest uppercase text-ink-soft mb-1">Ordem</label>
-          <input type="number" name="sortOrder" defaultValue={banner?.sortOrder ?? 0} className={inputClass} />
+          <label htmlFor={`${idPrefix}-order`} className={ADMIN_LABEL}>Ordem</label>
+          <input id={`${idPrefix}-order`} type="number" name="sortOrder" defaultValue={banner?.sortOrder ?? 0} className={ADMIN_INPUT} />
         </div>
         <label className="flex items-center gap-2 text-sm text-ink cursor-pointer mt-5">
           <input type="checkbox" name="isActive" defaultChecked={banner ? banner.isActive : true} className="accent-gold w-4 h-4" />
@@ -74,13 +81,13 @@ function BannerForm({ banner, onDone }: { banner?: Banner; onDone: () => void })
         </label>
       </div>
       <div className="flex justify-end gap-2 pt-2">
-        <button type="button" onClick={onDone} className="px-4 py-2 border border-gold-light/50 rounded text-sm text-ink hover:bg-cream transition-colors">
+        <button type="button" onClick={onDone} className={ADMIN_BTN_GHOST}>
           Cancelar
         </button>
         <button
           type="submit"
           disabled={pending}
-          className="bg-gold hover:bg-gold-dark text-cream px-4 py-2 rounded text-sm tracking-widest uppercase transition-colors disabled:opacity-50"
+          className={ADMIN_BTN_PRIMARY}
         >
           {pending ? "Salvando..." : "Salvar"}
         </button>
@@ -106,7 +113,7 @@ function BannerCard({ banner }: { banner: Banner }) {
   }
 
   return (
-    <div className="bg-card border border-gold-light/40 rounded-lg shadow-sm overflow-hidden flex flex-col">
+    <div className={`${ADMIN_CARD} overflow-hidden flex flex-col`}>
       <div className="relative aspect-[21/9] bg-cream-dark w-full">
         <Image src={banner.imageUrl} alt="Banner" fill className="object-cover" />
       </div>
@@ -118,7 +125,7 @@ function BannerCard({ banner }: { banner: Banner }) {
             <p className="text-sm text-ink-soft truncate">Link: {banner.linkUrl || "Nenhum"}</p>
             <div className="flex justify-between items-center mt-2">
               <span className="text-xs tracking-widest uppercase text-ink-soft">Ordem: {banner.sortOrder}</span>
-              <span className={banner.isActive ? "text-green-600 text-xs font-medium uppercase" : "text-gray-500 text-xs uppercase"}>
+              <span className={banner.isActive ? "text-success text-xs font-medium uppercase" : "text-ink-soft text-xs uppercase"}>
                 {banner.isActive ? "Ativo" : "Inativo"}
               </span>
             </div>
@@ -130,7 +137,7 @@ function BannerCard({ banner }: { banner: Banner }) {
             <button
               onClick={handleDelete}
               disabled={deleting}
-              className="flex-1 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
+              className="flex-1 py-2 text-sm text-danger hover:bg-danger/5 transition-colors disabled:opacity-50"
             >
               {deleting ? "Excluindo..." : "Excluir"}
             </button>
@@ -147,17 +154,17 @@ export function BannersManager({ banners }: { banners: Banner[] }) {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-serif text-ink">Banners da Home</h1>
+        <h1 className="admin-title text-ink">Banners da Home</h1>
         <button
           onClick={() => setCreating(!creating)}
-          className="bg-gold hover:bg-gold-dark text-cream px-4 py-2 text-sm tracking-widest uppercase transition-colors"
+          className={ADMIN_BTN_PRIMARY}
         >
           {creating ? "Fechar" : "+ Novo Banner"}
         </button>
       </div>
 
       {creating && (
-        <div className="bg-card border border-gold-light/40 rounded-lg shadow-sm max-w-lg">
+        <div className={`${ADMIN_CARD} max-w-lg`}>
           <div className="p-4 border-b border-gold-light/30">
             <h2 className="text-sm tracking-widest uppercase text-ink-soft">Novo Banner</h2>
           </div>

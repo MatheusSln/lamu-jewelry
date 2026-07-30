@@ -2,6 +2,7 @@
 
 import { useTransition } from "react";
 import { deleteProductAction } from "./actions";
+import { ADMIN_LINK_DANGER } from "../ui";
 
 export function DeleteProductButton({ id }: { id: number }) {
   const [isPending, startTransition] = useTransition();
@@ -23,7 +24,7 @@ export function DeleteProductButton({ id }: { id: number }) {
     <button
       onClick={handleDelete}
       disabled={isPending}
-      className="text-red-500 hover:text-red-700 text-sm tracking-wide disabled:opacity-50 ml-4"
+      className={`${ADMIN_LINK_DANGER} ml-4`}
     >
       {isPending ? "Excluindo..." : "Excluir"}
     </button>

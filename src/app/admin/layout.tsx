@@ -25,7 +25,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <Link href="/admin" className="text-gold tracking-[0.15em] uppercase font-bold text-lg">
             Lámu Admin
           </Link>
-          <button className="md:hidden text-ink" onClick={() => setSidebarOpen(false)}>✕</button>
+          <button type="button" aria-label="Fechar menu" className="md:hidden text-ink" onClick={() => setSidebarOpen(false)}>✕</button>
         </div>
         <nav className="p-4 space-y-2 text-sm tracking-wide">
           <Link href="/admin" className="block px-4 py-2 text-ink hover:bg-cream hover:text-gold rounded transition-colors">
@@ -59,8 +59,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Main Content */}
       <main className="flex-1 flex flex-col h-screen overflow-hidden">
         <header className="bg-card border-b border-gold-light/30 h-16 flex items-center px-4 shrink-0 md:hidden">
-          <button 
-            className="text-ink p-2" 
+          <button
+            type="button"
+            aria-label="Abrir menu"
+            className="text-ink p-2"
             onClick={() => setSidebarOpen(true)}
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">

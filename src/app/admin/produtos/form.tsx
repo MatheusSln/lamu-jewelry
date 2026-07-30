@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import type { categories } from "@/db/schema";
+import { ADMIN_ALERT_ERROR, ADMIN_BTN_GHOST, ADMIN_BTN_PRIMARY, ADMIN_INPUT, ADMIN_LABEL, ADMIN_LINK_DANGER } from "../ui";
 import { saveProductAction, updateProductAction } from "./actions";
 
 type Category = typeof categories.$inferSelect;
@@ -37,6 +39,15 @@ export function ProductForm({ categories, initialData }: { categories: Category[
   const [variants, setVariants] = useState<VariantData[]>(
     initialData?.variants ?? [{ label: "", stock: 0, priceDeltaCents: 0, isDefault: true }]
   );
+
+  // Object URLs dos previews de upload precisam ser revogados no unmount,
+  // não só na próxima seleção — senão vazam até a página fechar.
+  useEffect(() => {
+    return () => {
+      filePreviews.forEach((url) => URL.revokeObjectURL(url));
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function addPhoto() {
     setPhotos([...photos, ""]);
@@ -95,6 +106,10 @@ export function ProductForm({ categories, initialData }: { categories: Category[
       }
       if (result?.error) {
         setError(result.error);
+      } else {
+        // Sucesso: os previews locais não servem mais (as fotos já foram enviadas)
+        filePreviews.forEach((url) => URL.revokeObjectURL(url));
+        setFilePreviews([]);
       }
     } catch {
       setError("Erro inesperado ao salvar. Verifique a conexão e tente de novo.");
@@ -106,29 +121,31 @@ export function ProductForm({ categories, initialData }: { categories: Category[
   return (
     <form className="space-y-8" onSubmit={handleSubmit}>
       {error && (
-        <div className="bg-red-50 border border-red-300 text-red-800 rounded px-4 py-3 text-sm" role="alert">
+        <div className={ADMIN_ALERT_ERROR} role="alert">
           {error}
         </div>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-xs tracking-widest uppercase text-ink-soft mb-1">Nome do Produto</label>
+          <label htmlFor="prod-name" className={ADMIN_LABEL}>Nome do Produto</label>
           <input
+            id="prod-name"
             type="text"
             name="name"
             required
             defaultValue={initialData?.name}
-            className="w-full bg-transparent border border-gold-light/50 rounded px-4 py-2 text-sm focus:outline-none focus:border-gold"
+            className={ADMIN_INPUT}
           />
         </div>
         <div>
-          <label className="block text-xs tracking-widest uppercase text-ink-soft mb-1">Categoria</label>
+          <label htmlFor="prod-category" className={ADMIN_LABEL}>Categoria</label>
           <select
+            id="prod-category"
             name="categoryId"
             required
             defaultValue={initialData?.categoryId}
-            className="w-full bg-transparent border border-gold-light/50 rounded px-4 py-2 text-sm focus:outline-none focus:border-gold"
+            className={ADMIN_INPUT}
           >
             <option value="">Selecione...</option>
             {categories.map(c => (
@@ -137,35 +154,38 @@ export function ProductForm({ categories, initialData }: { categories: Category[
           </select>
         </div>
         <div>
-          <label className="block text-xs tracking-widest uppercase text-ink-soft mb-1">Preço (em centavos)</label>
+          <label htmlFor="prod-price" className={ADMIN_LABEL}>Preço (em centavos)</label>
           <input
+            id="prod-price"
             type="number"
             name="priceCents"
             required
             min={1}
             defaultValue={initialData?.priceCents}
             placeholder="Ex: 8990 (R$ 89,90)"
-            className="w-full bg-transparent border border-gold-light/50 rounded px-4 py-2 text-sm focus:outline-none focus:border-gold"
+            className={ADMIN_INPUT}
           />
         </div>
         <div>
-          <label className="block text-xs tracking-widest uppercase text-ink-soft mb-1">Preço Promocional (centavos)</label>
+          <label htmlFor="prod-promo-price" className={ADMIN_LABEL}>Preço Promocional (centavos)</label>
           <input
+            id="prod-promo-price"
             type="number"
             name="promoPriceCents"
             min={1}
             defaultValue={initialData?.promoPriceCents ?? ""}
             placeholder="Deixe vazio se não houver promoção"
-            className="w-full bg-transparent border border-gold-light/50 rounded px-4 py-2 text-sm focus:outline-none focus:border-gold"
+            className={ADMIN_INPUT}
           />
         </div>
         <div>
-          <label className="block text-xs tracking-widest uppercase text-ink-soft mb-1">Material</label>
+          <label htmlFor="prod-material" className={ADMIN_LABEL}>Material</label>
           <select
+            id="prod-material"
             name="material"
             required
             defaultValue={initialData?.material || "semijoia"}
-            className="w-full bg-transparent border border-gold-light/50 rounded px-4 py-2 text-sm focus:outline-none focus:border-gold"
+            className={ADMIN_INPUT}
           >
             <option value="semijoia">Semijoia</option>
             <option value="prata925">Prata 925</option>
@@ -174,33 +194,35 @@ export function ProductForm({ categories, initialData }: { categories: Category[
       </div>
 
       <div>
-        <label className="block text-xs tracking-widest uppercase text-ink-soft mb-1">Descrição</label>
+        <label htmlFor="prod-description" className={ADMIN_LABEL}>Descrição</label>
         <textarea
+          id="prod-description"
           name="description"
           rows={4}
           defaultValue={initialData?.description}
-          className="w-full bg-transparent border border-gold-light/50 rounded px-4 py-2 text-sm focus:outline-none focus:border-gold"
+          className={ADMIN_INPUT}
         ></textarea>
       </div>
 
       {/* Seção de Fotos */}
       <div className="border border-gold-light/30 rounded p-4">
         <div className="flex justify-between items-center mb-4">
-          <label className="block text-xs tracking-widest uppercase text-ink-soft">Fotos do Produto</label>
+          <span className="text-[11px] tracking-[0.16em] uppercase text-ink-soft">Fotos do Produto</span>
           <button type="button" onClick={addPhoto} className="text-xs text-gold hover:underline uppercase tracking-wider">
             + Adicionar Foto via URL
           </button>
         </div>
 
         <div className="mb-4">
-          <label className="block text-xs font-medium text-ink-soft mb-2">Fazer upload do computador</label>
+          <label htmlFor="prod-upload" className="block text-xs font-medium text-ink-soft mb-2">Fazer upload do computador</label>
           <input
+            id="prod-upload"
             type="file"
             name="newPhotos"
             multiple
             accept="image/*"
             onChange={handleFilesSelected}
-            className="w-full bg-transparent border border-gold-light/50 rounded px-4 py-2 text-sm focus:outline-none focus:border-gold file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-gold file:text-cream hover:file:bg-gold-dark cursor-pointer"
+            className={`${ADMIN_INPUT} file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-gold file:text-cream hover:file:bg-gold-dark cursor-pointer`}
           />
           <p className="text-[11px] text-ink-soft mt-1">Até 8MB por foto. Elas serão enviadas ao salvar o produto.</p>
           {filePreviews.length > 0 && (
@@ -216,7 +238,7 @@ export function ProductForm({ categories, initialData }: { categories: Category[
         </div>
 
         <div className="space-y-3 pt-4 border-t border-gold-light/20">
-          <label className="block text-xs font-medium text-ink-soft">Fotos atuais (URLs)</label>
+          <span className="block text-xs font-medium text-ink-soft">Fotos atuais (URLs)</span>
           {photos.map((p, index) => (
             <div key={index} className="flex gap-2">
               {(p.startsWith('http') || p.startsWith('/')) && (
@@ -230,12 +252,14 @@ export function ProductForm({ categories, initialData }: { categories: Category[
                 value={p}
                 onChange={(e) => updatePhoto(index, e.target.value)}
                 placeholder="https://..."
-                className="flex-1 bg-transparent border border-gold-light/50 rounded px-4 py-2 text-sm focus:outline-none focus:border-gold"
+                aria-label={`URL da foto ${index + 1}`}
+                className={`flex-1 ${ADMIN_INPUT}`}
               />
               <button
                 type="button"
                 onClick={() => removePhoto(index)}
-                className="text-red-500 hover:text-red-700 px-3 border border-red-200 rounded bg-red-50/10"
+                aria-label={`Remover foto ${index + 1}`}
+                className="text-danger hover:opacity-70 px-3 border border-danger/30 rounded bg-danger/5"
               >
                 X
               </button>
@@ -249,7 +273,7 @@ export function ProductForm({ categories, initialData }: { categories: Category[
       <div className="border border-gold-light/30 rounded p-4">
         <div className="flex justify-between items-center mb-4">
           <div>
-            <label className="block text-xs tracking-widest uppercase text-ink-soft">Estoque e Variações</label>
+            <span className="text-[11px] tracking-[0.16em] uppercase text-ink-soft">Estoque e Variações</span>
             <p className="text-[11px] text-ink-soft mt-1">
               Deixe o nome em branco se o produto não tem tamanhos ou cores diferentes.
             </p>
@@ -267,7 +291,8 @@ export function ProductForm({ categories, initialData }: { categories: Category[
                 value={v.label}
                 onChange={(e) => updateVariant(index, "label", e.target.value)}
                 placeholder={v.isDefault ? "Variação padrão (ex: Único)" : "Nome (ex: Tam. 16)"}
-                className="w-full bg-transparent border border-gold-light/50 rounded px-3 py-2 text-sm focus:outline-none focus:border-gold"
+                aria-label={`Nome da variação ${index + 1}`}
+                className={ADMIN_INPUT}
               />
               <input
                 type="number"
@@ -276,7 +301,8 @@ export function ProductForm({ categories, initialData }: { categories: Category[
                 onChange={(e) => updateVariant(index, "stock", parseInt(e.target.value, 10) || 0)}
                 placeholder="Estoque"
                 title="Quantidade em estoque"
-                className="w-full bg-transparent border border-gold-light/50 rounded px-3 py-2 text-sm focus:outline-none focus:border-gold"
+                aria-label={`Estoque da variação ${index + 1}`}
+                className={ADMIN_INPUT}
               />
               <input
                 type="number"
@@ -284,13 +310,15 @@ export function ProductForm({ categories, initialData }: { categories: Category[
                 onChange={(e) => updateVariant(index, "priceDeltaCents", parseInt(e.target.value, 10) || 0)}
                 placeholder="+ R$ 0,00 (centavos)"
                 title="Diferença de preço (+ ou - em centavos)"
-                className="w-full bg-transparent border border-gold-light/50 rounded px-3 py-2 text-sm focus:outline-none focus:border-gold"
+                aria-label={`Diferença de preço da variação ${index + 1}`}
+                className={ADMIN_INPUT}
               />
               <button
                 type="button"
                 onClick={() => removeVariant(index)}
                 disabled={variants.length === 1}
-                className="text-red-500 hover:text-red-700 px-3 py-2 border border-red-200 rounded bg-red-50/10 disabled:opacity-30 disabled:cursor-not-allowed"
+                aria-label={`Remover variação ${index + 1}`}
+                className="text-danger hover:opacity-70 px-3 py-2 border border-danger/30 rounded bg-danger/5 disabled:opacity-30 disabled:cursor-not-allowed"
                 title={variants.length === 1 ? "O produto precisa ter pelo menos uma variação" : "Remover"}
               >
                 X
@@ -316,13 +344,13 @@ export function ProductForm({ categories, initialData }: { categories: Category[
       </div>
 
       <div className="border-t border-gold-light/30 pt-6 flex justify-end gap-4">
-        <button type="button" onClick={() => window.history.back()} className="px-6 py-2 border border-gold-light/50 rounded text-sm hover:bg-cream transition-colors text-ink">
+        <Link href="/admin/produtos" className={ADMIN_BTN_GHOST}>
           Cancelar
-        </button>
+        </Link>
         <button
           type="submit"
           disabled={pending}
-          className="bg-gold hover:bg-gold-dark text-cream px-6 py-2 rounded text-sm tracking-widest uppercase transition-colors disabled:opacity-50"
+          className={ADMIN_BTN_PRIMARY}
         >
           {pending ? "Salvando..." : (initialData ? "Atualizar Produto" : "Criar Produto")}
         </button>

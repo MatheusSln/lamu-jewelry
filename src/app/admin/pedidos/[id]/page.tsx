@@ -6,6 +6,7 @@ import { asc, eq } from "drizzle-orm";
 import { formatBRL } from "@/lib/money";
 import { ORDER_STATUS_LABELS, ORDER_STATUS_STYLES } from "../status-labels";
 import { OrderStatusForm } from "./status-form";
+import { ADMIN_CARD } from "../../ui";
 
 export const dynamic = "force-dynamic";
 
@@ -36,12 +37,12 @@ export default async function AdminPedidoDetailPage({ params }: { params: Promis
           &larr; Voltar para pedidos
         </Link>
         <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-serif text-ink">Pedido {order.publicCode}</h1>
+          <h1 className="admin-title text-ink">Pedido {order.publicCode}</h1>
           <span className={`px-2 py-1 rounded text-xs uppercase tracking-wider ${ORDER_STATUS_STYLES[order.status] ?? "bg-gold-light/30 text-gold-dark"}`}>
             {ORDER_STATUS_LABELS[order.status] ?? order.status}
           </span>
           {order.needsStockReview && (
-            <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-xs uppercase tracking-wider">
+            <span className="bg-danger/15 text-danger px-2 py-1 rounded text-xs uppercase tracking-wider">
               Revisar estoque
             </span>
           )}
@@ -54,7 +55,7 @@ export default async function AdminPedidoDetailPage({ params }: { params: Promis
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           {/* Itens */}
-          <div className="bg-card border border-gold-light/40 rounded-lg shadow-sm">
+          <div className={ADMIN_CARD}>
             <div className="p-4 border-b border-gold-light/30">
               <h2 className="text-sm tracking-widest uppercase text-ink-soft">Itens do Pedido</h2>
             </div>
@@ -104,7 +105,7 @@ export default async function AdminPedidoDetailPage({ params }: { params: Promis
           </div>
 
           {/* Cliente e entrega */}
-          <div className="bg-card border border-gold-light/40 rounded-lg shadow-sm p-4 space-y-3">
+          <div className={`${ADMIN_CARD} p-4 space-y-3`}>
             <h2 className="text-sm tracking-widest uppercase text-ink-soft">Cliente e Entrega</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               <div>
@@ -139,11 +140,11 @@ export default async function AdminPedidoDetailPage({ params }: { params: Promis
 
         {/* Ações */}
         <div className="space-y-6">
-          <div className="bg-card border border-gold-light/40 rounded-lg shadow-sm p-4">
+          <div className={`${ADMIN_CARD} p-4`}>
             <h2 className="text-sm tracking-widest uppercase text-ink-soft mb-4">Atualizar Pedido</h2>
             <OrderStatusForm orderId={order.id} status={order.status} trackingCode={order.trackingCode} />
           </div>
-          <div className="bg-card border border-gold-light/40 rounded-lg shadow-sm p-4 text-sm text-ink-soft space-y-1">
+          <div className={`${ADMIN_CARD} p-4 text-sm text-ink-soft space-y-1`}>
             <h2 className="text-sm tracking-widest uppercase text-ink-soft mb-2">Pagamento</h2>
             <p>Cobrança AbacatePay: {order.abacatepayChargeId || "—"}</p>
             <p>Última atualização: {order.updatedAt.toLocaleString("pt-BR")}</p>

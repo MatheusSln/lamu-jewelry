@@ -3,12 +3,21 @@
 import { useState } from "react";
 import type { coupons } from "@/db/schema";
 import { formatBRL } from "@/lib/money";
+import {
+  ADMIN_ALERT_ERROR,
+  ADMIN_BTN_GHOST,
+  ADMIN_BTN_PRIMARY,
+  ADMIN_CARD,
+  ADMIN_INPUT,
+  ADMIN_LABEL,
+  ADMIN_LINK,
+  ADMIN_LINK_DANGER,
+  ADMIN_PILL_ACTIVE,
+  ADMIN_PILL_INACTIVE,
+} from "../ui";
 import { saveCouponAction, updateCouponAction, deleteCouponAction } from "./actions";
 
 type Coupon = typeof coupons.$inferSelect;
-
-const inputClass =
-  "w-full bg-transparent border border-gold-light/50 rounded px-3 py-2 text-sm focus:outline-none focus:border-gold";
 
 function toDateInputValue(d: Date | null): string {
   if (!d) return "";
@@ -20,6 +29,8 @@ function CouponForm({ coupon, onDone }: { coupon?: Coupon; onDone: () => void })
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [type, setType] = useState<"percent" | "fixed">(coupon?.type ?? "percent");
+
+  const idPrefix = coupon ? `coupon-${coupon.id}` : "coupon-new";
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -49,66 +60,70 @@ function CouponForm({ coupon, onDone }: { coupon?: Coupon; onDone: () => void })
   return (
     <form onSubmit={handleSubmit} className="p-4 space-y-4">
       {error && (
-        <div className="bg-red-50 border border-red-300 text-red-800 rounded px-3 py-2 text-sm" role="alert">
+        <div className={ADMIN_ALERT_ERROR} role="alert">
           {error}
         </div>
       )}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
-          <label className="block text-xs tracking-widest uppercase text-ink-soft mb-1">Código</label>
-          <input type="text" name="code" required defaultValue={coupon?.code} placeholder="BEMVINDA10" className={`${inputClass} uppercase`} />
+          <label htmlFor={`${idPrefix}-code`} className={ADMIN_LABEL}>Código</label>
+          <input id={`${idPrefix}-code`} type="text" name="code" required defaultValue={coupon?.code} placeholder="BEMVINDA10" className={`${ADMIN_INPUT} uppercase`} />
         </div>
         <div>
-          <label className="block text-xs tracking-widest uppercase text-ink-soft mb-1">Tipo</label>
+          <label htmlFor={`${idPrefix}-type`} className={ADMIN_LABEL}>Tipo</label>
           <select
+            id={`${idPrefix}-type`}
             name="type"
             value={type}
             onChange={(e) => setType(e.target.value as "percent" | "fixed")}
-            className={inputClass}
+            className={ADMIN_INPUT}
           >
             <option value="percent">Porcentagem (%)</option>
             <option value="fixed">Valor fixo (R$)</option>
           </select>
         </div>
         <div>
-          <label className="block text-xs tracking-widest uppercase text-ink-soft mb-1">
+          <label htmlFor={`${idPrefix}-value`} className={ADMIN_LABEL}>
             {type === "percent" ? "Desconto (%)" : "Desconto (centavos)"}
           </label>
           <input
+            id={`${idPrefix}-value`}
             type="number"
             name="value"
             required
             min={1}
             defaultValue={coupon?.value}
             placeholder={type === "percent" ? "Ex: 10 (= 10%)" : "Ex: 1500 (= R$ 15,00)"}
-            className={inputClass}
+            className={ADMIN_INPUT}
           />
         </div>
         <div>
-          <label className="block text-xs tracking-widest uppercase text-ink-soft mb-1">Pedido mínimo (centavos)</label>
+          <label htmlFor={`${idPrefix}-min`} className={ADMIN_LABEL}>Pedido mínimo (centavos)</label>
           <input
+            id={`${idPrefix}-min`}
             type="number"
             name="minOrderCents"
             min={0}
             defaultValue={coupon?.minOrderCents || ""}
             placeholder="Vazio = sem mínimo"
-            className={inputClass}
+            className={ADMIN_INPUT}
           />
         </div>
         <div>
-          <label className="block text-xs tracking-widest uppercase text-ink-soft mb-1">Limite de usos</label>
+          <label htmlFor={`${idPrefix}-maxuses`} className={ADMIN_LABEL}>Limite de usos</label>
           <input
+            id={`${idPrefix}-maxuses`}
             type="number"
             name="maxUses"
             min={1}
             defaultValue={coupon?.maxUses ?? ""}
             placeholder="Vazio = ilimitado"
-            className={inputClass}
+            className={ADMIN_INPUT}
           />
         </div>
         <div>
-          <label className="block text-xs tracking-widest uppercase text-ink-soft mb-1">Validade</label>
-          <input type="date" name="expiresAt" defaultValue={toDateInputValue(coupon?.expiresAt ?? null)} className={inputClass} />
+          <label htmlFor={`${idPrefix}-expires`} className={ADMIN_LABEL}>Validade</label>
+          <input id={`${idPrefix}-expires`} type="date" name="expiresAt" defaultValue={toDateInputValue(coupon?.expiresAt ?? null)} className={ADMIN_INPUT} />
         </div>
       </div>
       <div className="flex justify-between items-center">
@@ -117,13 +132,13 @@ function CouponForm({ coupon, onDone }: { coupon?: Coupon; onDone: () => void })
           Ativo
         </label>
         <div className="flex gap-2">
-          <button type="button" onClick={onDone} className="px-4 py-2 border border-gold-light/50 rounded text-sm text-ink hover:bg-cream transition-colors">
+          <button type="button" onClick={onDone} className={ADMIN_BTN_GHOST}>
             Cancelar
           </button>
           <button
             type="submit"
             disabled={pending}
-            className="bg-gold hover:bg-gold-dark text-cream px-4 py-2 rounded text-sm tracking-widest uppercase transition-colors disabled:opacity-50"
+            className={ADMIN_BTN_PRIMARY}
           >
             {pending ? "Salvando..." : "Salvar"}
           </button>
@@ -153,17 +168,17 @@ export function CuponsManager({ coupons }: { coupons: Coupon[] }) {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-serif text-ink">Cupons</h1>
+        <h1 className="admin-title text-ink">Cupons</h1>
         <button
           onClick={() => { setCreating(!creating); setEditing(null); }}
-          className="bg-gold hover:bg-gold-dark text-cream px-4 py-2 text-sm tracking-widest uppercase transition-colors"
+          className={ADMIN_BTN_PRIMARY}
         >
           {formOpen ? "Fechar" : "+ Novo Cupom"}
         </button>
       </div>
 
       {formOpen && (
-        <div className="bg-card border border-gold-light/40 rounded-lg shadow-sm">
+        <div className={ADMIN_CARD}>
           <div className="p-4 border-b border-gold-light/30">
             <h2 className="text-sm tracking-widest uppercase text-ink-soft">
               {editing ? `Editar cupom ${editing.code}` : "Novo Cupom"}
@@ -177,7 +192,7 @@ export function CuponsManager({ coupons }: { coupons: Coupon[] }) {
         </div>
       )}
 
-      <div className="bg-card border border-gold-light/40 rounded-lg shadow-sm">
+      <div className={ADMIN_CARD}>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[760px]">
             <thead>
@@ -209,22 +224,22 @@ export function CuponsManager({ coupons }: { coupons: Coupon[] }) {
                   </td>
                   <td className="py-3 px-4">
                     {c.isActive ? (
-                       <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs uppercase tracking-wider">Ativo</span>
+                       <span className={ADMIN_PILL_ACTIVE}>Ativo</span>
                     ) : (
-                       <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs uppercase tracking-wider">Inativo</span>
+                       <span className={ADMIN_PILL_INACTIVE}>Inativo</span>
                     )}
                   </td>
                   <td className="py-3 px-4 text-right whitespace-nowrap">
                     <button
                       onClick={() => { setEditing(c); setCreating(false); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-                      className="text-gold hover:text-gold-dark text-sm tracking-wide"
+                      className={ADMIN_LINK}
                     >
                       Editar
                     </button>
                     <button
                       onClick={() => handleDelete(c)}
                       disabled={deletingId === c.id}
-                      className="text-red-500 hover:text-red-700 text-sm tracking-wide disabled:opacity-50 ml-4"
+                      className={`${ADMIN_LINK_DANGER} ml-4`}
                     >
                       {deletingId === c.id ? "Excluindo..." : "Excluir"}
                     </button>

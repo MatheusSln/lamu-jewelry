@@ -4,6 +4,7 @@ import { eq, asc } from "drizzle-orm";
 import { ProductForm, type ProductInitialData } from "../../form";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { ADMIN_CARD } from "../../../ui";
 
 export const dynamic = "force-dynamic";
 
@@ -57,11 +58,11 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
           <Link href="/admin/produtos" className="text-gold hover:underline text-sm tracking-widest uppercase mb-2 block">
             &larr; Voltar
           </Link>
-          <h1 className="text-2xl font-serif text-ink">Editar Produto</h1>
+          <h1 className="admin-title text-ink">Editar Produto</h1>
         </div>
       </div>
-      
-      <div className="bg-card border border-gold-light/40 rounded-lg shadow-sm p-6">
+
+      <div className={`${ADMIN_CARD} p-6`}>
         <ProductForm categories={allCategories} initialData={initialData} />
       </div>
     </div>
