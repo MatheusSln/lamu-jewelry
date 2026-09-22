@@ -1,7 +1,4 @@
 import { cookies } from "next/headers";
-import { db } from "@/db";
-import { adminUsers } from "@/db/schema";
-import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
 const SECRET_KEY = process.env.SESSION_SECRET || "lamu_fallback_secret_key_change_me_in_prod";

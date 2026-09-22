@@ -7,6 +7,7 @@ import {
   serial,
   text,
   timestamp,
+  primaryKey,
 } from "drizzle-orm/pg-core";
 
 export const materialEnum = pgEnum("material", ["semijoia", "prata925"]);
@@ -96,6 +97,7 @@ export const orders = pgTable("orders", {
   customerName: text("customer_name").notNull(),
   customerWhatsapp: text("customer_whatsapp").notNull(),
   customerEmail: text("customer_email").notNull().default(""),
+  userId: text("user_id"), // Referência opcional ao usuário (comprador)
   address: jsonb("address").$type<OrderAddress | null>(),
   shippingName: text("shipping_name").notNull().default(""),
   shippingCents: integer("shipping_cents").notNull().default(0),
@@ -109,6 +111,8 @@ export const orders = pgTable("orders", {
   trackingCode: text("tracking_code"),
   origin: orderOriginEnum("origin").notNull().default("site"),
   abacatepayChargeId: text("abacatepay_charge_id"),
+  paymentUrl: text("payment_url"),
+  deliveryTimeDays: integer("delivery_time_days"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
@@ -159,3 +163,59 @@ export const adminUsers = pgTable("admin_users", {
   passwordHash: text("password_hash").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
+
+// --- NEXTAUTH TABLES ---
+
+export const users = pgTable("user", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  name: text("name"),
+  email: text("email").notNull(),
+  emailVerified: timestamp("emailVerified", { mode: "date" }),
+  image: text("image"),
+});
+
+export const accounts = pgTable(
+  "account",
+  {
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    type: text("type").notNull(),
+    provider: text("provider").notNull(),
+    providerAccountId: text("providerAccountId").notNull(),
+    refresh_token: text("refresh_token"),
+    access_token: text("access_token"),
+    expires_at: integer("expires_at"),
+    token_type: text("token_type"),
+    scope: text("scope"),
+    id_token: text("id_token"),
+    session_state: text("session_state"),
+  },
+  (account) => ({
+    compoundKey: primaryKey({
+      columns: [account.provider, account.providerAccountId],
+    }),
+  })
+);
+
+export const sessions = pgTable("session", {
+  sessionToken: text("sessionToken").primaryKey(),
+  userId: text("userId")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  expires: timestamp("expires", { mode: "date" }).notNull(),
+});
+
+export const verificationTokens = pgTable(
+  "verificationToken",
+  {
+    identifier: text("identifier").notNull(),
+    token: text("token").notNull(),
+    expires: timestamp("expires", { mode: "date" }).notNull(),
+  },
+  (vt) => ({
+    compoundKey: primaryKey({ columns: [vt.identifier, vt.token] }),
+  })
+);

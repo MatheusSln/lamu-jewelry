@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { categories } from "@/db/schema";
-import { ADMIN_ALERT_ERROR, ADMIN_BTN_GHOST, ADMIN_BTN_PRIMARY, ADMIN_INPUT, ADMIN_LABEL, ADMIN_LINK_DANGER } from "../ui";
+import { ADMIN_ALERT_ERROR, ADMIN_BTN_GHOST, ADMIN_BTN_PRIMARY, ADMIN_INPUT, ADMIN_LABEL } from "../ui";
 import { MoneyInput } from "../money-input";
 import { saveProductAction, updateProductAction } from "./actions";
 
